@@ -1,8 +1,11 @@
 # CheapThrills
-Big Data Project Submission
+### Big Data Project Submission
 
-Go into flask-server and run
-flask run -h localhost -p 8000
-
-Go into client and run
-npm start
+- Clone the repository
+- Run the script file - setup.sh to install all dependencies:
+  - .\setuo.sh (Windows)
+  - bash setup.sh (Mac)
+- Navigate to flask-server in a terminal:
+  - Run this command - flask run -h localhost -p 8000
+- In a different terminal, navigate to client folder:
+   - Run this command - npm start
