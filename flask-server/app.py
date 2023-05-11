@@ -13,12 +13,19 @@ import random
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from bson import json_util
-from models import app, db, Cities, Place_of_Interest, Person
+from models import app, db, Cities, Place_of_Interest, Person, sc, spark_db
+from pyspark.sql.functions import split, col
+
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/cheapThrills'
 mongo = PyMongo(app)
+recommendations = spark_db.read.format("com.mongodb.spark.sql.DefaultSource").option("uri", "mongodb://localhost:27017/cheapThrills.cheapThrills.recommendations").load()
+print(recommendations.show(2))
+
+flights = spark_db.read.format("com.mongodb.spark.sql.DefaultSource").option("uri", "mongodb://localhost:27017/cheapThrills.cheapThrills.flights").load()
+# recommendations.createOrReplaceTempView("recommendations")
 db_mongo = mongo.db['cheapThrills']
-recommendations = db_mongo['recommendations']
-flights = db_mongo['flights']
+recommendations_mongo = db_mongo['recommendations']
+flights_mongo = db_mongo['flights']
 
 def format_city(city, poi_list, actual_budget):
     return {
@@ -55,6 +62,19 @@ def format_flight(flight):
         "timestamp": flight.timestamp
 
     }
+
+def format_city_poi(name, airport_code, city_id, latitude, longitude, poi, budget):
+    return {
+        "name": name,
+        "airport_code": airport_code,
+        "city_id": city_id,
+        "latitude": latitude,
+        "longitude": longitude,
+        "poi": poi,
+        "budget": budget
+        
+    }
+
 def get_square_bounds(lat, lon, distance):
     R = 6371.01 # Earth's radius in km
     lat_rad = math.radians(lat)
@@ -123,10 +143,14 @@ def calculateNumDays(preference):
 
 def addFlightObjectToDatabase(src, dest, price_to, price_from, start_date, end_date):
     flight_obj = Flight(src, dest, price_to, start_date)
-    flights.insert_one(format_flight(flight_obj))
+    # df = spark_db.createDataFrame(format_flight(flight_obj))
+    # df.write.format('com.mongodb.spark.sql.DefaultSource').option( "uri", "mongodb://localhost:27017/cheapThrills.cheapThrills.flights").save()
+    flights_mongo.insert_one(format_flight(flight_obj))
 
     flight_obj = Flight(dest, src, price_from, end_date)
-    flights.insert_one(format_flight(flight_obj))
+    # df = spark_db.createDataFrame(format_flight(flight_obj))
+    # df.write.format('com.mongodb.spark.sql.DefaultSource').option( "uri", "mongodb://localhost:27017/cheapThrills.cheapThrills.flights").save()
+    flights_mongo.insert_one(format_flight(flight_obj))
 
 def createTargetCities(city_list, curr_city, preference, num_days):
     start_date = preference.start_date
@@ -144,7 +168,7 @@ def createTargetCities(city_list, curr_city, preference, num_days):
         total_price = float(price_to) + float(price_from) + float(avg_cost)*float(num_days)
         actual_budget = float(preference.budget)
         if(total_price <= actual_budget):
-            result_cities[city] = total_price
+            result_cities[city] = round(total_price,2)
     return result_cities
 
 def createCityList(latitude, longitude, max_distance):
@@ -181,7 +205,7 @@ def createRecommendations(result_cities, preference, user):
         curr_city_recommendation = createCityRecommendation(city, budget)
         city_poi_list.append(curr_city_recommendation)
     ts = datetime.now()
-    recommendations.insert_one({'user': format_user(user), 'preference': format_preference(preference), 'city': city_poi_list, 'timestamp': ts})
+    recommendations_mongo.insert_one({'user': format_user(user), 'preference': format_preference(preference), 'city': city_poi_list, 'timestamp': ts})
     return city_poi_list
 
 def calculateTrip(user, preference):
@@ -246,21 +270,62 @@ def get_preferences():
     curr_and_past_search = {"cities": city_poi_list, "past_search":past_search}
     return curr_and_past_search
 
+def createJSONForCityObject(past_search):
+    cities = []
+    for i in range(len(past_search['city'])):
+        city = past_search['city'][i]
+        name = city[0]
+        airport_code = city[1]
+        city_id = city[2]
+        latitude = city[3]
+        longitude = city[4]
+        poi = city[5]
+        budget = city[6]
+        cities.append(format_city_poi(name, airport_code, city_id, latitude, longitude, poi, budget))
+    
+    res = json.loads(json_util.dumps(cities))
+    return {"city": res}
+
 def get_past_searches(name, email):
-    city_objects = recommendations.find({'user':{'name': name, 'email': email}})
-    city_objects = list(city_objects)
-    print(len(city_objects))
-    if len(city_objects) == 0:
+    # city_objects = recommendations.filter(recommendations.user.name == name).filter(recommendations.user.email == email)
+    print(recommendations.printSchema())
+    city_objects = recommendations.filter(col('user.name') == name).filter(col('user.email')==email)
+    city_objects_list = city_objects.collect()
+    if len(city_objects_list) == 0:
+        return {}
+    elif len(city_objects_list) == 1:
         return {}
     else:
-        past_search = json.loads(json_util.dumps(city_objects[0]))
-        max_time = city_objects[0]['timestamp']
-        for i in range(len(city_objects)):
-            if city_objects[i]['timestamp'] > max_time:
-                past_search = json.loads(json_util.dumps(city_objects[i]))
-        return past_search
+        row = city_objects_list[0]
+        row_dict_first = row.asDict()
+        time_1 = row_dict_first['timestamp']
+        row_second = city_objects_list[1]
+        row_dict = row_second.asDict()
+        time_2 = row_dict['timestamp']
+        if time_1 < time_2:
+            max_time = time_2
+            max_time_2 = time_1
+            past_search = json.loads(json_util.dumps(row_dict_first))
+        elif time_2 < time_1:
+            max_time = time_1
+            max_time_2 = time_2
+            past_search = json.loads(json_util.dumps(row_dict))
+        for i in range(len(city_objects_list)):
+            row = city_objects_list[i]
+            temp_row_dict = row.asDict()
+            if row_dict['timestamp'] > max_time:
+                past_search = json.loads(json_util.dumps(row_dict_first))
+                row_dict = row_dict_first
+                row_dict_first = temp_row_dict
+                max_time_2 = max_time
+                max_time = temp_row_dict['timestamp']
+            elif max_time_2 < temp_row_dict['timestamp'] and temp_row_dict['timestamp'] < max_time:
+                row_dict = temp_row_dict
+                max_time_2 = row_dict['timestamp']
+                past_search = json.loads(json_util.dumps(row_dict))
+            
+        return createJSONForCityObject(past_search)
     
-
 @app.route('/get-cities', methods = ['GET'])
 def get_cities():
     cities = Cities.query.all()

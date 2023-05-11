@@ -275,7 +275,7 @@ const PreferencesPage = (props) => {
               <p style={{ textAlign: 'center' }}>Calculating recommendations...</p>
               <p style={{ textAlign: 'center' }}>Fun Fact: You are a broke college student.</p>
               <p style={{ textAlign: 'center' }}>Feeling attacked?</p>
-              <p style={{ textAlign: 'center' }}>Sounds like a YOU PROBLEM</p>
+              <p style={{ textAlign: 'center' }}>Sounds like a YOU PROBLEM!</p>
             </div>
           </div>
     )}
