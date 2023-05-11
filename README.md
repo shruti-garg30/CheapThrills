@@ -1,26 +1,38 @@
-# CheapThrills
-## Members 
+# Big Data Project Submission
+### CheapThrills
+#### Members 
 - Meenesh Solanki (mms9905)
 - Purvav Punyani (psp8474)
 - Sheena Garg (sg7394)
 - Shruti Garg (sg7395)
 - Tiyas Dey (td2355)
-### Big Data Project Submission
 
-Introduction
+
+#### Introduction
 
 Welcome to Cheap Thrills. This README file provides detailed instructions on how to clone the repository, set up the project, and run the application on your local machine.
 
-Getting Started
+#### Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-Prerequisites
+#### Prerequisites
 Ensure that you have the following installed on your local machine:
 
-- Git
+- Git 
+  - https://github.com/git-guides/install-git
+- Python and pip
 - Flask
 - Node.js and npm
+  - https://nodejs.org/en/download
+- Docker
+  - Docker: https://www.docker.com/
+  - Windows 7, 10 Home: Docker Toolbox: https://www.docker.com/products/docker-toolbox
+  - Windows 10 Pro: Docker for Windows: https://docs.docker.com/docker-for-windows/
+  - Mac OS: Docker for Mac: https://www.docker.com/products/docker#/mac
+  - Linux: containers (Linux kernel 3.6+): https://docs.docker.com/engine/installation/linux/
+  - Windows required virtualization enabled in BIOS
+  - Windows 10 Pro: required HyperV virtualization installed/enabled)
 
 Installation
 Follow these steps to get a development environment running:
