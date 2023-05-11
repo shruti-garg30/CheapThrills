@@ -34,6 +34,7 @@ You need to run a script file named 'setup.sh' to install all the necessary depe
 For Windows:
 Open your command prompt and navigate to the directory of the cloned repo, then run:
 - .\setup.sh
+
 For Mac:
 Open your terminal and navigate to the directory of the cloned repo, then run:
 - bash setup.sh
