@@ -1,10 +1,10 @@
 # CheapThrills
 ## Members 
--Meenesh Solanki (mms9905)
--Purvav Punyani (psp8474)
--Sheena Garg (sg7394)
--Shruti Garg (sg7395)
--Tiyas Dey (td2355)
+- Meenesh Solanki (mms9905)
+- Purvav Punyani (psp8474)
+- Sheena Garg (sg7394)
+- Shruti Garg (sg7395)
+- Tiyas Dey (td2355)
 ### Big Data Project Submission
 
 Introduction
