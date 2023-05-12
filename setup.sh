@@ -6,6 +6,7 @@ pip install flask_cors
 pip install pyspark
 pip install psycopg2
 pip install flask_pymongo
+pip install pandas
 cd client
 npm install 
 cd ..
