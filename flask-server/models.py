@@ -31,10 +31,10 @@ app.app_context().push()
 class Cities(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     city_name = db.Column(db.String(), nullable=False)
-    city_latitude = db.Column(db.Double)
-    city_longitude = db.Column(db.Double)
+    city_latitude = db.Column(db.Float)
+    city_longitude = db.Column(db.Float)
     airport_code = db.Column(db.String())
-    average_cost = db.Column(db.Double, nullable=False)
+    average_cost = db.Column(db.Float, nullable=False)
 
     def __repr__(self):
         return f"City: \t Name: {self.city_name} \t Code: {self.airport_code} \t Latitude: {self.city_latitude}"

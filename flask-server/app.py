@@ -15,6 +15,7 @@ from pymongo import MongoClient
 from bson import json_util
 from models import app, db, Cities, Place_of_Interest, Person, sc, spark_db
 from pyspark.sql.functions import split, col
+import pandas as pd
 
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/cheapThrills'
 mongo = PyMongo(app)
@@ -157,19 +158,61 @@ def createTargetCities(city_list, curr_city, preference, num_days):
     end_date = preference.end_date
     result_cities = {}
     for city in city_list:
-        price_to = findFlightPrices(curr_city.airport_code, city.airport_code, start_date)
-        # price_to = 120
-        price_from = findFlightPrices(city.airport_code, curr_city.airport_code, end_date)
-        # price_from = 110
+        df = pd.read_csv("../Consumer_Airfare_Report__Table_1a_-_All_U.S._Airport_Pair_Markets.csv", low_memory=False)
+
+        filtered_df = df[['city1', 'city2', 'airport_1', 'airport_2', 'fare']].copy()
+
+        filtered_df['airport_1'] = filtered_df['airport_1'].str.strip().str.upper()
+        filtered_df['airport_2'] = filtered_df['airport_2'].str.strip().str.upper()
+
+        filtered_df['fare'] = pd.to_numeric(filtered_df['fare'], errors='coerce')
+        data = filtered_df
+
+        matching_rows = data[
+            ((data['airport_1'] == curr_city.airport_code) & (data['airport_2'] == city.airport_code)) | (
+                    (data['airport_1'] == city.airport_code) & (data['airport_2'] == curr_city.airport_code))]
+
+        if matching_rows.empty:
+            average_fare = 0
+        else:
+            average_fare = matching_rows['fare'].mean()
+
+        if average_fare != 0:
+            price_to = average_fare
+            price_from = average_fare
+        else:
+            price_to = findFlightPrices(curr_city.airport_code, city.airport_code, start_date)
+            # price_to = 120
+            price_from = findFlightPrices(city.airport_code, curr_city.airport_code, end_date)
+            # price_from = 110
         avg_cost = Cities.query.filter_by(city_name=city.city_name)[0].average_cost
-        if(price_to == 0 or price_from == 0):
+        if price_to == 0 or price_from == 0:
             continue
         addFlightObjectToDatabase(curr_city.city_name, city.city_name, price_to, price_from, start_date, end_date)
-        total_price = float(price_to) + float(price_from) + float(avg_cost)*float(num_days)
+        total_price = float(price_to) + float(price_from) + float(avg_cost) * float(num_days)
         actual_budget = float(preference.budget)
-        if(total_price <= actual_budget):
-            result_cities[city] = round(total_price,2)
+        if total_price <= actual_budget:
+            result_cities[city] = round(total_price, 2)
     return result_cities
+
+# def createTargetCities(city_list, curr_city, preference, num_days):
+#     start_date = preference.start_date
+#     end_date = preference.end_date
+#     result_cities = {}
+#     for city in city_list:
+#         price_to = findFlightPrices(curr_city.airport_code, city.airport_code, start_date)
+#         # price_to = 120
+#         price_from = findFlightPrices(city.airport_code, curr_city.airport_code, end_date)
+#         # price_from = 110
+#         avg_cost = Cities.query.filter_by(city_name=city.city_name)[0].average_cost
+#         if(price_to == 0 or price_from == 0):
+#             continue
+#         addFlightObjectToDatabase(curr_city.city_name, city.city_name, price_to, price_from, start_date, end_date)
+#         total_price = float(price_to) + float(price_from) + float(avg_cost)*float(num_days)
+#         actual_budget = float(preference.budget)
+#         if(total_price <= actual_budget):
+#             result_cities[city] = round(total_price,2)
+#     return result_cities
 
 def createCityList(latitude, longitude, max_distance):
     city_list = []
