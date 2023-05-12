@@ -15,6 +15,7 @@ amadeus = "*"
 pymongo = "*"
 flask-pymongo = "*"
 flask-wtf = "*"
+pandas = "*"
 
 [dev-packages]
 
