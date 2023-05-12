@@ -25,8 +25,8 @@ Ensure that you have the following installed on your local machine:
 - Flask
 - Node.js and npm
   - https://nodejs.org/en/download
-- Postgres: https://www.postgresql.org/download/ 
-- Mongodb: https://www.mongodb.com/try/download/community 
+- Postgres: https://www.postgresql.org/download/ (Optionally you can run the setup files to set up docker image for the same)
+- Mongodb: https://www.mongodb.com/try/download/community (Optionally you can run the setup files to set up docker image for the same)
 - Docker
   - Docker: https://www.docker.com/
   - Windows 7, 10 Home: Docker Toolbox: https://www.docker.com/products/docker-toolbox
@@ -41,6 +41,7 @@ Follow these steps to get a development environment running:
 
 1 - Create Database "cheapThrills" in Postgres
 - CREATE DATABASE cheapThrills;
+- (Optionally you can run the setup files to do this for you)
 
 2 - Clone the repository
 To clone the repository, run the following command in your terminal:
@@ -50,11 +51,13 @@ To clone the repository, run the following command in your terminal:
 You need to run a script file named 'setup.sh' to install all the necessary dependencies. Here's how you can do this:
 For Windows:
 Open your command prompt and navigate to the directory of the cloned repo, then run:
-- .\setup.sh
+- .\setup1.sh
+- .\setup2.sh
 
 For Mac:
 Open your terminal and navigate to the directory of the cloned repo, then run:
-- bash setup.sh
+- bash setup1.sh
+- bash setup2.sh
 
 4 - Start the Flask server
 Navigate to 'flask-server' directory in your terminal, then start the server by running:
