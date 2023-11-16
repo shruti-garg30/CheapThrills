@@ -1,5 +1,4 @@
-# A Budget Friendly Vacation Planner
-### CheapThrills
+# CheapThrills: A Budget-Friendly Vacation Planner
 #### Members 
 - Meenesh Solanki (mms9905)
 - Purvav Punyani (psp8474)
