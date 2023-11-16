@@ -1,4 +1,4 @@
-# Big Data Project Submission
+# A Budget Friendly Vacation Planner
 ### CheapThrills
 #### Members 
 - Meenesh Solanki (mms9905)
